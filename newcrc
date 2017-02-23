@@ -1,0 +1,131 @@
+#include <stdint.h>
+#include<iostream>
+#include<vector>
+#include<string>
+#include<stdio.h>
+using namespace std;
+class testcase
+{
+public:
+    testcase(const char* str):casename(str){}
+    virtual void Run()=0;
+private:
+    int testresult;
+    const char* casename;
+};
+class unitcase
+{
+public:
+    static unitcase* getstance();
+    void Run();
+    testcase* registercase(testcase *);
+
+private:
+    vector<testcase*>veclist;
+    int sumcount;
+};
+unitcase* unitcase::getstance()
+{
+    static unitcase currentcase;
+    return &currentcase;
+}
+testcase* unitcase::registercase(testcase *onecase)
+{
+    veclist.push_back(onecase);
+    return onecase;
+}
+void unitcase::Run()
+{
+  int tempcount=1;
+  for(vector<testcase*>::iterator iter=veclist.begin();iter!=veclist.end();++iter)
+  {
+      ++tempcount;
+      testcase *current=*iter;
+      current->Run();
+  }
+}
+
+#define TEST_NAME(testcase1)\
+        testcase##_test
+#define TEST_(testcase1)\
+class TEST_NAME(testcase1):public testcase\
+{\
+public:\
+    TEST_NAME(testcase1)(const char *str):testcase(str){}\
+    virtual void Run();\
+private:\
+    static  testcase* const testcase_;\
+};\
+ testcase*const TEST_NAME(testcase1)::testcase_=unitcase::getstance()->registercase(new TEST_NAME(testcase1)(#testcase1));\
+void TEST_NAME(testcase1)::Run()
+
+#define TEST(testcase1)\
+        TEST_(testcase1)
+TEST(one)
+{
+
+}
+
+unsigned long long CalCrc1(unsigned long long object,int len,unsigned long long topbit,unsigned long long space)
+{
+
+     unsigned long long remainder=0;
+    for(int i=len;i>=0;i--)
+    {
+            unsigned long long temptest=object>>i;
+            temptest=temptest&0X1;
+            remainder =remainder|temptest;
+            cout<<"temptest=="<<temptest<<"       remainder=-----="<<remainder<<"   adn"<<i<<endl;
+
+            if(remainder&topbit)
+            {
+                 //cout<<"remainder==remainder&topbit==="<<remainder<<endl;
+                 remainder = ((remainder)^0xB)&0XF;
+                 remainder = remainder<<1;
+                // cout<<"remainder==remainder&topbit==="<<remainder<<endl;
+            }
+            else
+            {
+                 //cout<<"real====="<<remainder<<endl;
+                 remainder = (remainder<<1);
+                 //cout<<"real====="<<remainder<<endl;
+                // cout<<"remaindermax"<<remainder<<endl;
+
+            }
+
+    }
+        cout<<remainder<<endl;
+    for(int i=space;i>0;--i)
+    {
+        if(remainder&topbit)
+        {
+
+                 remainder = ((remainder)^0xB)&0XF;
+           //remainder = ((remainder)^0X8005)&0XFFFF;
+        }
+
+        if(i!=1)
+        remainder = (remainder << 1);
+        cout<<"lastremainder====="<<remainder<<endl;
+    }
+    cout<<remainder<<endl;
+
+return remainder;
+}
+int main()
+{
+
+
+     unsigned long long object =0X12345;
+     //cout<<"zuiyi"<<(object>>10)<<endl;
+     unsigned long long topbit=0X8;
+     unsigned long long len =16;
+     unsigned long long space =3;
+     unsigned long long tempnum=CalCrc1(object,len,topbit,space);
+     cout<<"tempnum==="<<tempnum<<endl;
+     unsigned long checknum =(object<<space)|tempnum;
+     unsigned long long tempnum1=CalCrc1(checknum,len+space,topbit,0);
+     cout<<"tempnum1==="<<tempnum1<<endl;
+    cin.get();
+    return 0;
+}
